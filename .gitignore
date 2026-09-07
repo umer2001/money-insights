@@ -29,3 +29,7 @@ sada-pay-pkr/
 output/
 legacy_src/
 
+# Local agent environment
+.agents/
+skills-lock.json
+
