@@ -216,7 +216,7 @@ export const Home: React.FC = () => {
               <div className="flex items-center gap-2">
                 <span className="font-bold text-base tracking-tight">MoneyInsight</span>
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-medium">
-                  Tax Utility
+                  Financial Utility
                 </Badge>
               </div>
               <p className="text-[11px] text-muted-foreground hidden sm:block">
@@ -257,7 +257,7 @@ export const Home: React.FC = () => {
         <div className="text-center space-y-3 max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>FBR Income Tax Return Ready</span>
+            <span>Fast & Privacy-First Statement Standardizer</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
@@ -265,7 +265,7 @@ export const Home: React.FC = () => {
           </h1>
 
           <p className="text-sm text-muted-foreground">
-            Drop statements from Pakistani and global banks. Extract debits, credits, and balances, audit accuracy, and export ready-to-file consolidated Excel and CSV spreadsheets.
+            Drop statements from Pakistani and global banks. Automatically extract transactions, reconcile debits and credits, and export clean, consolidated Excel and CSV spreadsheets.
           </p>
         </div>
 

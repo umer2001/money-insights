@@ -83,7 +83,7 @@ export const ExportBar: React.FC<ExportBarProps> = ({ items, onReset }) => {
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <p className="text-xs font-semibold">Ready for Tax Export</p>
+            <p className="text-xs font-semibold">Ready for Export</p>
             <p className="text-[11px] text-muted-foreground">
               {successfulItems.length} accounts standardized & reconciled
             </p>
