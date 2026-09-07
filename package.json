@@ -88,7 +88,11 @@
     "dev": "refine dev",
     "build": "tsc && refine build",
     "start": "refine start",
-    "refine": "refine"
+    "refine": "refine",
+    "emulators": "npx.cmd --yes firebase-tools emulators:start --only functions,hosting",
+    "functions:lint": "pnpm --filter functions run lint",
+    "convert:cli": "node legacy_src/index.js",
+    "test:parsers": "node functions/test_parsers.js"
   },
   "browserslist": {
     "production": [
