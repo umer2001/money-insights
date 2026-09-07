@@ -9,7 +9,7 @@ import {
   Sparkles,
   RefreshCw,
 } from "lucide-react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/refine-ui/theme/theme-provider";
 import { StatementFileItem } from "../types";
 import { detectStatement, parseStatement } from "../lib/api";
 import { Dropzone } from "../components/Dropzone";
@@ -21,7 +21,7 @@ import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 
 export const Home: React.FC = () => {
-  const { theme, setTheme } = useTheme();
+  const { isDark, setTheme } = useTheme();
   const [items, setItems] = useState<StatementFileItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -237,14 +237,14 @@ export const Home: React.FC = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="rounded-xl w-9 h-9"
-              title="Toggle Theme"
+              onClick={() => setTheme(isDark ? "light" : "dark")}
+              className="rounded-xl w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+              title={isDark ? "Switch to light mode" : "Switch to dark mode"}
             >
-              {theme === "dark" ? (
+              {isDark ? (
                 <Sun className="w-4 h-4 text-amber-400" />
               ) : (
-                <Moon className="w-4 h-4 text-slate-700" />
+                <Moon className="w-4 h-4 text-foreground" />
               )}
             </Button>
           </div>

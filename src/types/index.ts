@@ -31,7 +31,7 @@ export interface StatementFileItem {
   name: string;
   size: number;
   status: 'pending' | 'detecting' | 'parsing' | 'success' | 'error' | 'password_required';
-  bank: string; // 'abl' | 'fbl' | 'sadaPay' | 'easyPaisa' | 'nayaPay' | 'payoneer' | 'unknown'
+  bank: string; // 'abl' | 'fbl' | 'sadaPay' | 'easyPaisa' | 'nayaPay' | 'payoneer' | 'hbl' | 'ubl' | 'unknown'
   bankName: string;
   fullName: string;
   currency: string;

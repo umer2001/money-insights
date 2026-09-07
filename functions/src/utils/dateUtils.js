@@ -10,13 +10,32 @@ const MONTH_MAP = {
   july: '07', august: '08', september: '09', october: '10', november: '11', december: '12'
 };
 
-function normalizeDate(rawStr) {
+function normalizeDate(rawStr, formatHint = null) {
   if (!rawStr) return '';
   const str = String(rawStr).trim();
 
-  // Pattern 1: MM-DD-YYYY or MM/DD/YYYY (e.g. Payoneer: "12-28-2025", "05-08-2026")
+  // If explicit format hint provided e.g. 'DD-MM-YYYY'
+  if (formatHint === 'DD-MM-YYYY') {
+    const m = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+    if (m) {
+      const day = m[1].padStart(2, '0');
+      const month = m[2].padStart(2, '0');
+      const year = m[3];
+      return `${year}-${month}-${day}`;
+    }
+  }
+
+  // Pattern 1: MM-DD-YYYY or DD-MM-YYYY (e.g. Payoneer: "12-28-2025", or day > 12)
   const m1 = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
   if (m1) {
+    const first = parseInt(m1[1], 10);
+    const second = parseInt(m1[2], 10);
+    if (first > 12 && second <= 12) {
+      const day = m1[1].padStart(2, '0');
+      const month = m1[2].padStart(2, '0');
+      const year = m1[3];
+      return `${year}-${month}-${day}`;
+    }
     const month = m1[1].padStart(2, '0');
     const day = m1[2].padStart(2, '0');
     const year = m1[3];
@@ -32,8 +51,8 @@ function normalizeDate(rawStr) {
     return `${year}-${month}-${day}`;
   }
 
-  // Pattern 3: "DD Mon YYYY" or "D Mon, YYYY" or "DD Mon, YYYY" (e.g. "16 Jul 2025", "2 Jul, 2025")
-  const m3 = str.match(/^(\d{1,2})\s+([A-Za-z]+),?\s+(\d{4})$/);
+  // Pattern 3: "DD Mon YYYY" or "DD-Mon-YYYY" or "DD Mon, YYYY" (e.g. "16 Jul 2025", "06-Sep-2025")
+  const m3 = str.match(/^(\d{1,2})[\s\-]+([A-Za-z]+),?[\s\-]+(\d{4})$/);
   if (m3) {
     const day = m3[1].padStart(2, '0');
     const monName = m3[2].toLowerCase();

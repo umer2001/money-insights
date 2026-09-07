@@ -6,6 +6,8 @@ const SadaPayParser = require('./src/parsers/sadaPayParser');
 const EasyPaisaParser = require('./src/parsers/easyPaisaParser');
 const NayaPayParser = require('./src/parsers/nayaPayParser');
 const PayoneerParser = require('./src/parsers/payoneerParser');
+const HblParser = require('./src/parsers/hblParser');
+const UblParser = require('./src/parsers/ublParser');
 const { detectBankFormat } = require('./src/parsers/detector');
 const { validateTransactions } = require('./src/utils/validator');
 const CONFIG = require('./src/config');
@@ -72,6 +74,21 @@ async function testAll() {
       Parser: SadaPayParser,
       config: CONFIG.banks.sadaPay,
       expectedBank: 'sadaPay'
+    },
+    {
+      name: 'HBL PDF',
+      file: path.join(sampleDir, 'hbl-pkr', 'Account Statement.pdf'),
+      Parser: HblParser,
+      config: CONFIG.banks.hbl,
+      password: '032403',
+      expectedBank: 'hbl'
+    },
+    {
+      name: 'UBL PDF',
+      file: path.join(sampleDir, 'ubl-pkr', 'UBL-06-Sep-2026 11_34_50.pdf'),
+      Parser: UblParser,
+      config: CONFIG.banks.ubl,
+      expectedBank: 'ubl'
     }
   ];
 
@@ -113,6 +130,27 @@ async function testAll() {
     try {
       const epParser = new EasyPaisaParser('easyPaisa', CONFIG.banks.easyPaisa);
       await epParser.parse(buf, '');
+    } catch (e) {
+      const isPassErr = (e.name || '').includes('Password') || (e.message || '').toLowerCase().includes('password');
+      if (isPassErr) threwExpected = true;
+    }
+    console.log(`  Parse without password rejected with PasswordException: ${threwExpected ? 'PASS' : 'FAIL'}`);
+    if (!threwExpected) allPassed = false;
+  }
+
+  // Verify HBL password protection behavior without password
+  const hblFile = path.join(sampleDir, 'hbl-pkr', 'Account Statement.pdf');
+  if (fs.existsSync(hblFile)) {
+    console.log('\n=== HBL Password Protection Check (Without Password) ===');
+    const buf = fs.readFileSync(hblFile);
+    const unauthenticatedDetection = await detectBankFormat('HBL-statement.pdf', buf, '');
+    console.log(`  Detection without password requiresPassword: ${unauthenticatedDetection.requiresPassword} -> ${unauthenticatedDetection.requiresPassword ? 'PASS' : 'FAIL'}`);
+    if (!unauthenticatedDetection.requiresPassword) allPassed = false;
+
+    let threwExpected = false;
+    try {
+      const hblParser = new HblParser('hbl', CONFIG.banks.hbl);
+      await hblParser.parse(buf, '');
     } catch (e) {
       const isPassErr = (e.name || '').includes('Password') || (e.message || '').toLowerCase().includes('password');
       if (isPassErr) threwExpected = true;

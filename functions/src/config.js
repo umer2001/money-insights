@@ -76,6 +76,23 @@ const CONFIG = {
       inputDir: path.join(SAMPLE_DIR, 'easy-paisa-pkr'),
       outputPrefix: 'easypaisa_pkr',
       password: process.env.EASYPAISA_PASSWORD || ''
+    },
+    hbl: {
+      name: 'HBL',
+      fullName: 'Habib Bank Limited',
+      currency: 'PKR',
+      defaultAccountId: 'HBL-PKR',
+      inputDir: path.join(SAMPLE_DIR, 'hbl-pkr'),
+      outputPrefix: 'hbl_pkr',
+      password: process.env.HBL_PASSWORD || ''
+    },
+    ubl: {
+      name: 'UBL',
+      fullName: 'United Bank Limited',
+      currency: 'PKR',
+      defaultAccountId: 'UBL-PKR',
+      inputDir: path.join(SAMPLE_DIR, 'ubl-pkr'),
+      outputPrefix: 'ubl_pkr'
     }
   }
 };

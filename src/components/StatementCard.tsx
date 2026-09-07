@@ -32,6 +32,8 @@ interface StatementCardProps {
 const BANK_OPTIONS = [
   { value: "abl", label: "Allied Bank (ABL)" },
   { value: "fbl", label: "Faysal Bank (FBL)" },
+  { value: "hbl", label: "Habib Bank (HBL)" },
+  { value: "ubl", label: "United Bank (UBL)" },
   { value: "sadaPay", label: "SadaPay" },
   { value: "easyPaisa", label: "easypaisa" },
   { value: "nayaPay", label: "NayaPay" },

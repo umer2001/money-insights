@@ -100,6 +100,27 @@ async function detectBankFormat(filename = '', buffer, password = '') {
       ) {
         return { bank: 'abl', confidence: 0.99 };
       }
+
+      // 6. Habib Bank Limited (HBL)
+      if (
+        header.includes('HBL Mobile') ||
+        /PK\d{2}HABB/i.test(header) ||
+        (header.includes('Account Activity') && header.includes('Branch:')) ||
+        /habib bank/i.test(header)
+      ) {
+        return { bank: 'hbl', confidence: 0.99, requiresPassword: false };
+      }
+
+      // 7. United Bank Limited (UBL)
+      if (
+        header.includes('ubldigital') ||
+        /PK\d{2}UNIL/i.test(header) ||
+        header.includes('United Bank Limited') ||
+        header.includes('UBLUnitedBankLtd') ||
+        /UBL\s*Savings/i.test(header)
+      ) {
+        return { bank: 'ubl', confidence: 0.99, requiresPassword: false };
+      }
     } catch (err) {
       const msg = (err.message || '').toLowerCase();
       const errName = (err.name || '').toLowerCase();
@@ -109,6 +130,8 @@ async function detectBankFormat(filename = '', buffer, password = '') {
         msg.includes('encrypt') ||
         msg.includes('bad decrypt')
       ) {
+        if (name.includes('hbl') || name.includes('habib')) return { bank: 'hbl', confidence: 0.85, requiresPassword: true };
+        if (name.includes('ubl') || name.includes('united')) return { bank: 'ubl', confidence: 0.85, requiresPassword: true };
         if (name.includes('fbl') || name.includes('faysal')) return { bank: 'fbl', confidence: 0.85, requiresPassword: true };
         if (name.includes('abl') || name.includes('allied')) return { bank: 'abl', confidence: 0.85, requiresPassword: true };
         if (name.includes('sada')) return { bank: 'sadaPay', confidence: 0.85, requiresPassword: true };
@@ -122,6 +145,8 @@ async function detectBankFormat(filename = '', buffer, password = '') {
   }
 
   // Fallback heuristic by filename
+  if (name.includes('hbl') || name.includes('habib')) return { bank: 'hbl', confidence: 0.7 };
+  if (name.includes('ubl') || name.includes('united')) return { bank: 'ubl', confidence: 0.7 };
   if (name.includes('fbl') || name.includes('faysal')) return { bank: 'fbl', confidence: 0.7 };
   if (name.includes('nayapay') || name.includes('naya')) return { bank: 'nayaPay', confidence: 0.7 };
   if (name.includes('sadapay') || name.includes('sada')) return { bank: 'sadaPay', confidence: 0.7 };

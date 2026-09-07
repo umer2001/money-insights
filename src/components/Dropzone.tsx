@@ -11,8 +11,10 @@ interface DropzoneProps {
 const SUPPORTED_BANKS = [
   { key: "abl", name: "Allied Bank", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
   { key: "fbl", name: "Faysal Bank", color: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" },
+  { key: "hbl", name: "Habib Bank (HBL)", color: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
+  { key: "ubl", name: "United Bank (UBL)", color: "bg-cyan-500/10 text-cyan-600 border-cyan-500/20" },
   { key: "sadaPay", name: "SadaPay", color: "bg-teal-500/10 text-teal-600 border-teal-500/20" },
-  { key: "easyPaisa", name: "easypaisa", color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
+  { key: "easyPaisa", name: "easypaisa", color: "bg-green-500/10 text-green-600 border-green-500/20" },
   { key: "nayaPay", name: "NayaPay", color: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
   { key: "payoneer", name: "Payoneer (USD)", color: "bg-rose-500/10 text-rose-600 border-rose-500/20" },
 ];

@@ -15,6 +15,8 @@ function getModules() {
     const EasyPaisaParser = require('./src/parsers/easyPaisaParser');
     const NayaPayParser = require('./src/parsers/nayaPayParser');
     const PayoneerParser = require('./src/parsers/payoneerParser');
+    const HblParser = require('./src/parsers/hblParser');
+    const UblParser = require('./src/parsers/ublParser');
     const { detectBankFormat } = require('./src/parsers/detector');
     const { validateTransactions } = require('./src/utils/validator');
     const { generateCsvString } = require('./src/utils/csvWriter');
@@ -32,7 +34,9 @@ function getModules() {
         sadaPay: { Class: SadaPayParser, config: CONFIG.banks.sadaPay },
         easyPaisa: { Class: EasyPaisaParser, config: CONFIG.banks.easyPaisa },
         nayaPay: { Class: NayaPayParser, config: CONFIG.banks.nayaPay },
-        payoneer: { Class: PayoneerParser, config: CONFIG.banks.payoneer }
+        payoneer: { Class: PayoneerParser, config: CONFIG.banks.payoneer },
+        hbl: { Class: HblParser, config: CONFIG.banks.hbl },
+        ubl: { Class: UblParser, config: CONFIG.banks.ubl }
       }
     };
   }
