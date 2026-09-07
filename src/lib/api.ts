@@ -1,6 +1,13 @@
 import { StandardTransaction, StatementValidation } from "../types";
 
-const API_BASE = (import.meta.env.VITE_API_URL || "/api").trim();
+const API_BASE = (
+  import.meta.env.PROD ||
+  !import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_API_URL.includes("127.0.0.1") ||
+  import.meta.env.VITE_API_URL.includes("localhost")
+    ? "/api"
+    : import.meta.env.VITE_API_URL
+).trim();
 
 export interface DetectResponse {
   detected: {
