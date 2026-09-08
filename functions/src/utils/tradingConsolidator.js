@@ -8,6 +8,7 @@ const TRADING_EXPORT_COLUMNS = [
   'action',
   'qty',
   'rate',
+  'amount',
   'balance'
 ];
 
@@ -241,6 +242,7 @@ function generateTradingCsvString(transactions = []) {
       escapeCsvField(tx.action || 'debit'),
       escapeCsvField(tx.qty !== undefined && tx.qty !== null ? tx.qty : '-'),
       escapeCsvField(tx.rate !== undefined && tx.rate !== null ? tx.rate : '-'),
+      escapeCsvField(typeof tx.amount === 'number' ? tx.amount.toFixed(2) : tx.amount),
       escapeCsvField(typeof tx.balance === 'number' ? tx.balance.toFixed(2) : tx.balance)
     ].join(',');
   });
@@ -249,7 +251,7 @@ function generateTradingCsvString(transactions = []) {
 }
 
 /**
- * Generate Excel workbook buffer with the exact 7 requested columns
+ * Generate Excel workbook buffer with the designated columns
  */
 function generateTradingExcelBuffer(transactions = [], sheetName = 'Trading_Ledger') {
   const rows = transactions.map(tx => {
@@ -261,6 +263,7 @@ function generateTradingExcelBuffer(transactions = [], sheetName = 'Trading_Ledg
       'action': tx.action || 'debit',
       'qty': tx.qty !== undefined && tx.qty !== null ? tx.qty : '-',
       'rate': tx.rate !== undefined && tx.rate !== null ? tx.rate : '-',
+      'amount': typeof tx.amount === 'number' ? Number(tx.amount.toFixed(2)) : tx.amount,
       'balance': typeof tx.balance === 'number' ? Number(tx.balance.toFixed(2)) : tx.balance
     };
   });
@@ -275,6 +278,7 @@ function generateTradingExcelBuffer(transactions = [], sheetName = 'Trading_Ledg
     { wch: 10 }, // action
     { wch: 10 }, // qty
     { wch: 12 }, // rate
+    { wch: 14 }, // amount
     { wch: 16 }  // balance
   ];
 

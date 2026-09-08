@@ -182,13 +182,14 @@ export const TradingGrid: React.FC<TradingGridProps> = ({
                 <TableHead className="w-[90px] text-xs font-semibold text-center">Action</TableHead>
                 <TableHead className="w-[85px] text-xs font-semibold text-right">Qty</TableHead>
                 <TableHead className="w-[95px] text-xs font-semibold text-right">Rate</TableHead>
+                <TableHead className="w-[110px] text-xs font-semibold text-right">Amount (PKR)</TableHead>
                 <TableHead className="w-[120px] text-xs font-semibold text-right">Balance (PKR)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginated.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground text-xs">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground text-xs">
                     No transactions match your search filter.
                   </TableCell>
                 </TableRow>
@@ -260,6 +261,19 @@ export const TradingGrid: React.FC<TradingGridProps> = ({
                         {typeof tx.rate === "number"
                           ? tx.rate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                           : tx.rate || "-"}
+                      </TableCell>
+
+                      {/* Amount */}
+                      <TableCell
+                        className={`text-right font-mono text-xs font-semibold py-2.5 ${
+                          isCredit ? "text-emerald-600" : "text-rose-600"
+                        }`}
+                      >
+                        {isCredit ? "+" : "-"}
+                        {Number(tx.amount).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </TableCell>
 
                       {/* Balance */}
