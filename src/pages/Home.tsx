@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router";
 import {
   Wallet,
   ShieldCheck,
@@ -8,6 +9,8 @@ import {
   CheckCircle2,
   Sparkles,
   RefreshCw,
+  Building2,
+  TrendingUp,
 } from "lucide-react";
 import { useTheme } from "@/components/refine-ui/theme/theme-provider";
 import { StatementFileItem } from "../types";
@@ -208,21 +211,41 @@ export const Home: React.FC = () => {
       {/* Top Navigation Bar */}
       <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-linear-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/20 text-white">
-              <Wallet className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-base tracking-tight">MoneyInsight</span>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-medium">
-                  Financial Utility
-                </Badge>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-linear-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/20 text-white">
+                <Wallet className="w-5 h-5" />
               </div>
-              <p className="text-[11px] text-muted-foreground hidden sm:block">
-                Bank Statement Standardization & Consolidation
-              </p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-base tracking-tight">MoneyInsight</span>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-medium">
+                    Financial Utility
+                  </Badge>
+                </div>
+                <p className="text-[11px] text-muted-foreground hidden sm:block">
+                  Bank Statement Standardization & Consolidation
+                </p>
+              </div>
             </div>
+
+            {/* Navigation Switcher */}
+            <nav className="hidden md:flex items-center gap-1.5 p-1 bg-muted/60 rounded-xl border">
+              <Link
+                to="/"
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-background text-foreground shadow-xs flex items-center gap-1.5"
+              >
+                <Building2 className="w-3.5 h-3.5 text-emerald-600" />
+                Bank Statements
+              </Link>
+              <Link
+                to="/trading"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
+              >
+                <TrendingUp className="w-3.5 h-3.5 text-purple-600" />
+                EClear Trading
+              </Link>
+            </nav>
           </div>
 
           <div className="flex items-center gap-3">

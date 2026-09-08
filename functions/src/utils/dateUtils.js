@@ -25,6 +25,15 @@ function normalizeDate(rawStr, formatHint = null) {
     }
   }
 
+  // Pattern 0: DD-MM-YY or DD/MM/YY (2-digit year e.g. "18-08-25")
+  const m0 = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2})$/);
+  if (m0) {
+    const day = m0[1].padStart(2, '0');
+    const month = m0[2].padStart(2, '0');
+    const year = parseInt(m0[3], 10) > 50 ? `19${m0[3]}` : `20${m0[3]}`;
+    return `${year}-${month}-${day}`;
+  }
+
   // Pattern 1: MM-DD-YYYY or DD-MM-YYYY (e.g. Payoneer: "12-28-2025", or day > 12)
   const m1 = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
   if (m1) {

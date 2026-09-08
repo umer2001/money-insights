@@ -92,7 +92,8 @@
     "emulators": "npx.cmd --yes firebase-tools emulators:start --only functions,hosting",
     "functions:lint": "pnpm --filter functions run lint",
     "convert:cli": "node legacy_src/index.js",
-    "test:parsers": "node functions/test_parsers.js",
+    "test:parsers": "node functions/test_parsers.js && node functions/test_trading.js",
+    "test:trading": "node functions/test_trading.js",
     "deploy": "pnpm run build && npx.cmd -y firebase-tools@latest deploy --only functions,hosting",
     "deploy:hosting": "pnpm run build && npx.cmd -y firebase-tools@latest deploy --only hosting",
     "deploy:functions": "npx.cmd -y firebase-tools@latest deploy --only functions"

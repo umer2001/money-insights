@@ -17,10 +17,16 @@ function getModules() {
     const PayoneerParser = require('./src/parsers/payoneerParser');
     const HblParser = require('./src/parsers/hblParser');
     const UblParser = require('./src/parsers/ublParser');
+    const EclearParser = require('./src/parsers/eclearParser');
     const { detectBankFormat } = require('./src/parsers/detector');
     const { validateTransactions } = require('./src/utils/validator');
     const { generateCsvString } = require('./src/utils/csvWriter');
     const { generateExcelBuffer } = require('./src/utils/excelWriter');
+    const {
+      consolidateTradingStatements,
+      generateTradingCsvString,
+      generateTradingExcelBuffer
+    } = require('./src/utils/tradingConsolidator');
 
     cachedModules = {
       CONFIG,
@@ -28,6 +34,10 @@ function getModules() {
       validateTransactions,
       generateCsvString,
       generateExcelBuffer,
+      EclearParser,
+      consolidateTradingStatements,
+      generateTradingCsvString,
+      generateTradingExcelBuffer,
       parserMap: {
         abl: { Class: AblParser, config: CONFIG.banks.abl },
         fbl: { Class: FblParser, config: CONFIG.banks.fbl },
@@ -104,6 +114,10 @@ exports.api = onRequest({ cors: true }, (req, res) => {
         validateTransactions,
         generateCsvString,
         generateExcelBuffer,
+        EclearParser,
+        consolidateTradingStatements,
+        generateTradingCsvString,
+        generateTradingExcelBuffer,
         parserMap
       } = getModules();
 
@@ -294,6 +308,93 @@ exports.api = onRequest({ cors: true }, (req, res) => {
           summary,
           exports
         });
+      }
+
+      // 6. Trading: Parse single EClear or Broker statement
+      if (req.method === 'POST' && path === '/trading/parse') {
+        const { file } = await parseMultipart(req);
+        if (!file) {
+          return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        try {
+          const parser = new EclearParser();
+          const transactions = await parser.parse(file.buffer);
+
+          return res.json({
+            success: true,
+            filename: file.filename,
+            format: transactions.format,
+            accountId: transactions.accountId,
+            openingBalance: transactions.openingBalance,
+            closingBalance: transactions.closingBalance,
+            transactions
+          });
+        } catch (err) {
+          return res.status(500).json({
+            error: `Failed to parse trading statement: ${err.message || err}`
+          });
+        }
+      }
+
+      // 7. Trading: Consolidate multiple trading statements with deduplication & enriched merge
+      if (req.method === 'POST' && path === '/trading/consolidate') {
+        const { statements = [], format = 'xlsx' } = req.body || {};
+        if (!statements.length) {
+          return res.status(400).json({ error: 'No statements provided for consolidation' });
+        }
+
+        try {
+          const result = consolidateTradingStatements(statements);
+          let exportData = null;
+
+          if (format === 'csv') {
+            exportData = {
+              filename: 'consolidated_eclear_trading.csv',
+              contentBase64: Buffer.from(generateTradingCsvString(result.transactions)).toString('base64'),
+              mimeType: 'text/csv'
+            };
+          } else {
+            exportData = {
+              filename: 'consolidated_eclear_trading.xlsx',
+              contentBase64: generateTradingExcelBuffer(result.transactions, 'Trading_Consolidated').toString('base64'),
+              mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            };
+          }
+
+          return res.json({
+            success: true,
+            ...result,
+            export: exportData
+          });
+        } catch (err) {
+          return res.status(500).json({
+            error: `Failed to consolidate trading statements: ${err.message || err}`
+          });
+        }
+      }
+
+      // 8. Trading: Export trading transactions with designated 7 columns
+      if (req.method === 'POST' && path === '/trading/export') {
+        const { transactions = [], format = 'xlsx', sheetName = 'EClear_Trading' } = req.body || {};
+        if (!transactions.length) {
+          return res.status(400).json({ error: 'No transactions to export' });
+        }
+
+        if (format === 'csv') {
+          const csv = generateTradingCsvString(transactions);
+          res.setHeader('Content-Type', 'text/csv');
+          res.setHeader('Content-Disposition', `attachment; filename="${sheetName}.csv"`);
+          return res.send(csv);
+        } else {
+          const excelBuf = generateTradingExcelBuffer(transactions, sheetName);
+          res.setHeader(
+            'Content-Type',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          );
+          res.setHeader('Content-Disposition', `attachment; filename="${sheetName}.xlsx"`);
+          return res.send(excelBuf);
+        }
       }
 
       return res.status(404).json({ error: `Not found: ${req.method} ${path}` });

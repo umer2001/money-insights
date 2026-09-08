@@ -51,3 +51,57 @@ export interface CurrencyConsolidation {
   excelBase64?: string;
   csvBase64?: string;
 }
+
+export interface TradingTransaction {
+  date: string;
+  symbol_description: string;
+  side: 'BUY' | 'SELL' | '-';
+  action: 'credit' | 'debit';
+  qty: number | string;
+  rate: number | string;
+  balance: number;
+  amount: number;
+  voucher?: string;
+  ticket_no?: string;
+  source_format?: 'eclear' | 'broker';
+  account_id?: string;
+  raw_description?: string;
+  description?: string;
+  symbol?: string;
+  time?: string;
+  bank?: string;
+  currency?: string;
+  transaction_id?: string;
+  extra?: string;
+  merged?: boolean;
+}
+
+export interface TradingFileItem {
+  id: string;
+  file: File;
+  name: string;
+  size: number;
+  status: 'pending' | 'parsing' | 'success' | 'error';
+  format?: 'eclear' | 'broker';
+  accountId?: string;
+  transactions: TradingTransaction[];
+  openingBalance?: number;
+  closingBalance?: number;
+  error?: string;
+}
+
+export interface TradingConsolidationResult {
+  transactions: TradingTransaction[];
+  openingBalance: number;
+  closingBalance: number;
+  totalDebit: number;
+  totalCredit: number;
+  netChange: number;
+  deduplicatedCount: number;
+  isValid: boolean;
+  export?: {
+    filename: string;
+    contentBase64: string;
+    mimeType: string;
+  };
+}
