@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Search, ArrowUpDown, ChevronLeft, ChevronRight, Download, Filter, Layers } from "lucide-react";
+import { Search, ArrowUpDown, ChevronLeft, ChevronRight, Download, Filter, Layers, Calendar, X } from "lucide-react";
 import { TradingTransaction } from "../types";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
@@ -26,6 +26,8 @@ export const TradingGrid: React.FC<TradingGridProps> = ({
   isConsolidated = false,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [sideFilter, setSideFilter] = useState<"all" | "BUY" | "SELL" | "DIFF" | "other">("all");
   const [page, setPage] = useState(1);
   const pageSize = 20;
@@ -50,9 +52,13 @@ export const TradingGrid: React.FC<TradingGridProps> = ({
       else if (sideFilter === "DIFF") matchesSide = tx.side === "DIFF";
       else if (sideFilter === "other") matchesSide = tx.side === "-" || !tx.side;
 
-      return matchesSearch && matchesSide;
+      const matchesDate =
+        (!startDate || tx.date >= startDate) &&
+        (!endDate || tx.date <= endDate);
+
+      return matchesSearch && matchesSide && matchesDate;
     });
-  }, [transactions, searchTerm, sideFilter]);
+  }, [transactions, searchTerm, sideFilter, startDate, endDate]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginated = useMemo(() => {
@@ -109,18 +115,60 @@ export const TradingGrid: React.FC<TradingGridProps> = ({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search symbol, narration, voucher..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setPage(1);
-            }}
-            className="pl-8 h-9 text-xs"
-          />
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2.5 flex-1">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search symbol, narration, voucher..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1);
+              }}
+              className="pl-8 h-9 text-xs"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(e) => {
+                setStartDate(e.target.value);
+                setPage(1);
+              }}
+              className="h-8 w-32 text-xs font-mono"
+              placeholder="From Date"
+            />
+            <span className="text-[11px] text-muted-foreground">to</span>
+            <Input
+              type="date"
+              value={endDate}
+              onChange={(e) => {
+                setEndDate(e.target.value);
+                setPage(1);
+              }}
+              className="h-8 w-32 text-xs font-mono"
+              placeholder="To Date"
+            />
+            {(startDate || endDate) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setStartDate("");
+                  setEndDate("");
+                  setPage(1);
+                }}
+                className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
+                title="Clear date filter"
+              >
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-1.5">

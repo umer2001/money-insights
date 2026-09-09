@@ -16,12 +16,16 @@ import {
   ArrowRight,
   ShieldAlert,
   Zap,
+  Calendar,
+  X,
 } from "lucide-react";
 import {
   TradingPosition,
   TradingPerformanceSummary,
   exportPositionsCsv,
   buildPositionsFromTransactions,
+  computePerformanceSummary,
+  isPositionInDateRange,
 } from "../lib/tradingPositionEngine";
 import { TradingTransaction } from "../types";
 import { Input } from "./ui/input";
@@ -48,20 +52,44 @@ export const TradingPositionsView: React.FC<TradingPositionsViewProps> = ({
   isConsolidated = false,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [filterTab, setFilterTab] = useState<"all" | "closed" | "open" | "diff" | "wins" | "losses">("all");
   const [sortBy, setSortBy] = useState<"date" | "pnl_desc" | "pnl_asc" | "symbol" | "duration">("date");
   const [expandedPositions, setExpandedPositions] = useState<Record<string, boolean>>({});
   const [page, setPage] = useState(1);
   const pageSize = 15;
 
-  // Build positions using Weighted Average Cost
-  const { positions, summary } = useMemo(() => {
+  // Detect earliest and latest available date from transactions
+  const { minDate, maxDate } = useMemo(() => {
+    if (transactions.length === 0) return { minDate: "", maxDate: "" };
+    let min = transactions[0].date;
+    let max = transactions[0].date;
+    for (const t of transactions) {
+      if (t.date && t.date < min) min = t.date;
+      if (t.date && t.date > max) max = t.date;
+    }
+    return { minDate: min, maxDate: max };
+  }, [transactions]);
+
+  // Build all positions using Weighted Average Cost
+  const { positions } = useMemo(() => {
     return buildPositionsFromTransactions(transactions);
   }, [transactions]);
 
-  // Filter & Sort
+  // Step 1: Filter positions by Date Range (executed or closed during that range)
+  const dateFilteredPositions = useMemo(() => {
+    return positions.filter((p) => isPositionInDateRange(p, startDate, endDate));
+  }, [positions, startDate, endDate]);
+
+  // Step 2: Dynamically recompute summary metrics specifically for the date-filtered period!
+  const summary = useMemo(() => {
+    return computePerformanceSummary(dateFilteredPositions);
+  }, [dateFilteredPositions]);
+
+  // Step 3: Filter & Sort for display table and pagination
   const filteredPositions = useMemo(() => {
-    return positions.filter((p) => {
+    return dateFilteredPositions.filter((p) => {
       const matchesSearch =
         !searchTerm ||
         p.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -86,7 +114,7 @@ export const TradingPositionsView: React.FC<TradingPositionsViewProps> = ({
       if (sortBy === "duration") return b.durationDays - a.durationDays;
       return 0;
     });
-  }, [positions, searchTerm, filterTab, sortBy]);
+  }, [dateFilteredPositions, searchTerm, filterTab, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filteredPositions.length / pageSize));
   const paginated = useMemo(() => {
@@ -135,6 +163,145 @@ export const TradingPositionsView: React.FC<TradingPositionsViewProps> = ({
           <Download className="w-3.5 h-3.5" />
           Export Positions CSV
         </Button>
+      </div>
+
+      {/* Date Range Filter Bar */}
+      <div className="p-3.5 rounded-xl border bg-card/70 backdrop-blur-md shadow-xs space-y-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          {/* Left: Date Inputs */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+              <Calendar className="w-4 h-4 text-purple-600" />
+              <span>Date Filter:</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] text-muted-foreground font-medium">From</span>
+                <Input
+                  type="date"
+                  value={startDate}
+                  min={minDate}
+                  max={maxDate}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    setPage(1);
+                  }}
+                  className="h-8 w-34 text-xs font-mono bg-background"
+                />
+              </div>
+
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] text-muted-foreground font-medium">To</span>
+                <Input
+                  type="date"
+                  value={endDate}
+                  min={minDate}
+                  max={maxDate}
+                  onChange={(e) => {
+                    setEndDate(e.target.value);
+                    setPage(1);
+                  }}
+                  className="h-8 w-34 text-xs font-mono bg-background"
+                />
+              </div>
+            </div>
+
+            {(startDate || endDate) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setStartDate("");
+                  setEndDate("");
+                  setPage(1);
+                }}
+                className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground gap-1"
+                title="Clear date filter"
+              >
+                <X className="w-3.5 h-3.5" />
+                Clear
+              </Button>
+            )}
+          </div>
+
+          {/* Right: Quick Presets */}
+          <div className="flex flex-wrap items-center gap-1">
+            <span className="text-[11px] text-muted-foreground mr-1">Presets:</span>
+            <Button
+              variant={!startDate && !endDate ? "secondary" : "outline"}
+              size="sm"
+              className="h-7 px-2.5 text-[11px]"
+              onClick={() => {
+                setStartDate("");
+                setEndDate("");
+                setPage(1);
+              }}
+            >
+              All Time
+            </Button>
+            <Button
+              variant={startDate === "2026-01-01" && endDate === "2026-03-31" ? "secondary" : "outline"}
+              size="sm"
+              className="h-7 px-2.5 text-[11px]"
+              onClick={() => {
+                setStartDate("2026-01-01");
+                setEndDate("2026-03-31");
+                setPage(1);
+              }}
+            >
+              Q1 2026
+            </Button>
+            <Button
+              variant={startDate === "2026-04-01" && endDate === "2026-06-30" ? "secondary" : "outline"}
+              size="sm"
+              className="h-7 px-2.5 text-[11px]"
+              onClick={() => {
+                setStartDate("2026-04-01");
+                setEndDate("2026-06-30");
+                setPage(1);
+              }}
+            >
+              Q2 2026
+            </Button>
+            <Button
+              variant={startDate === "2026-01-01" && endDate === "2026-12-31" ? "secondary" : "outline"}
+              size="sm"
+              className="h-7 px-2.5 text-[11px]"
+              onClick={() => {
+                setStartDate("2026-01-01");
+                setEndDate("2026-12-31");
+                setPage(1);
+              }}
+            >
+              2026
+            </Button>
+            <Button
+              variant={startDate === "2025-01-01" && endDate === "2025-12-31" ? "secondary" : "outline"}
+              size="sm"
+              className="h-7 px-2.5 text-[11px]"
+              onClick={() => {
+                setStartDate("2025-01-01");
+                setEndDate("2025-12-31");
+                setPage(1);
+              }}
+            >
+              2025
+            </Button>
+          </div>
+        </div>
+
+        {/* Active timeframe indicator */}
+        {(startDate || endDate) && (
+          <div className="flex flex-wrap items-center gap-2 pt-0.5 text-[11px] text-purple-700 dark:text-purple-300 font-medium">
+            <Badge variant="outline" className="bg-purple-500/10 border-purple-500/20 text-purple-700 dark:text-purple-300 text-[10px] py-0">
+              Filtered Period: {startDate || minDate || "Earliest"} → {endDate || maxDate || "Latest"}
+            </Badge>
+            <span>
+              Showing {dateFilteredPositions.length} of {positions.length} total positions executed or closed in this period
+            </span>
+          </div>
+        )}
       </div>
 
       {/* 2. Top Performance Analytics Cards */}
@@ -253,7 +420,7 @@ export const TradingPositionsView: React.FC<TradingPositionsViewProps> = ({
               setPage(1);
             }}
           >
-            All ({positions.length})
+            All ({summary.totalPositions})
           </Button>
           <Button
             variant={filterTab === "closed" ? "default" : "outline"}

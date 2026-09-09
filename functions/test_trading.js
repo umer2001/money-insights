@@ -161,6 +161,25 @@ async function testTradingPipeline() {
   console.log(`   BOP-2 Lifecycle verified: ${eventTypes.join(' -> ')} (Realized: PKR ${bop2.realizedPnL})`);
   console.log('   [PASS] WAC Position & PnL Engine verified.\n');
 
+  // Test 6: Verify Date Range Filtering & Dynamic Summary Recalculation
+  console.log('6. Testing Date Range Filtering & Dynamic Summary Recalculation...');
+  const { isPositionInDateRange, computePerformanceSummary } = require('./src/utils/tradingPositionEngine');
+
+  const q1Positions = positions.filter(p => isPositionInDateRange(p, '2026-01-01', '2026-03-31'));
+  const q1Summary = computePerformanceSummary(q1Positions);
+
+  console.log(`   Q1 2026 Positions: ${q1Positions.length} (Closed: ${q1Summary.closedPositions}, Open: ${q1Summary.openPositions}, Intraday: ${q1Summary.intradayPositions})`);
+  console.log(`   Q1 Realized PnL: PKR ${q1Summary.totalRealizedPnL}`);
+  console.log(`   Q1 Win Rate: ${q1Summary.winRatePercent}% (${q1Summary.winsCount}W / ${q1Summary.lossesCount}L)`);
+
+  if (q1Positions.length !== 25) {
+    throw new Error(`Expected 25 positions in Q1 2026, got ${q1Positions.length}`);
+  }
+  if (q1Summary.totalRealizedPnL !== -64740.45) {
+    throw new Error(`Expected Q1 Realized PnL -64740.45, got ${q1Summary.totalRealizedPnL}`);
+  }
+  console.log('   [PASS] Date Range Filtering and Dynamic Summary verified.\n');
+
   console.log('===============================================================');
   console.log('          ALL TRADING TESTS PASSED SUCCESSFULLY!               ');
   console.log('===============================================================\n');

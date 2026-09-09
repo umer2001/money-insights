@@ -310,6 +310,43 @@ export function buildPositionsFromTransactions(transactions: TradingTransaction[
   positions.sort((a, b) => a.startDate.localeCompare(b.startDate));
 
   // 2. Compute Overall Performance Analytics Summary
+  const summary = computePerformanceSummary(positions);
+
+  return {
+    positions,
+    summary,
+  };
+}
+
+/**
+ * Check if a trading position was executed or closed within the given date range [startDate, endDate]
+ */
+export function isPositionInDateRange(
+  pos: TradingPosition,
+  startDate?: string,
+  endDate?: string
+): boolean {
+  if (!startDate && !endDate) return true;
+
+  // 1. Check if the position was closed during that date range
+  const closedInRange = Boolean(
+    pos.endDate &&
+      (!startDate || pos.endDate >= startDate) &&
+      (!endDate || pos.endDate <= endDate)
+  );
+
+  // 2. Check if any executions (BUY, SELL, DIFF) occurred during that date range
+  const executedInRange = pos.events.some(
+    (e) => (!startDate || e.date >= startDate) && (!endDate || e.date <= endDate)
+  );
+
+  return closedInRange || executedInRange;
+}
+
+/**
+ * Compute performance metrics across a given set of positions (e.g. filtered by date or search)
+ */
+export function computePerformanceSummary(positions: TradingPosition[]): TradingPerformanceSummary {
   const closedPositions = positions.filter((p) => p.status === 'CLOSED');
   const openPositions = positions.filter((p) => p.status === 'OPEN');
   const intradayPositions = positions.filter((p) => p.status === 'INTRADAY');
@@ -358,7 +395,7 @@ export function buildPositionsFromTransactions(transactions: TradingTransaction[
     openCapitalAtRisk += p.currentCostBasis || 0;
   }
 
-  const summary: TradingPerformanceSummary = {
+  return {
     totalPositions: positions.length,
     closedPositions: closedPositions.length,
     openPositions: openPositions.length,
@@ -379,11 +416,6 @@ export function buildPositionsFromTransactions(transactions: TradingTransaction[
     openCapitalAtRisk: Math.round(openCapitalAtRisk * 100) / 100,
     bestTrade,
     worstTrade,
-  };
-
-  return {
-    positions,
-    summary,
   };
 }
 

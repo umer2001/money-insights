@@ -241,6 +241,37 @@ function buildPositionsFromTransactions(transactions = []) {
   positions.sort((a, b) => a.startDate.localeCompare(b.startDate));
 
   // 2. Compute Overall Performance Analytics Summary
+  const summary = computePerformanceSummary(positions);
+
+  return {
+    positions,
+    summary
+  };
+}
+
+/**
+ * Check if a trading position was executed or closed within the given date range [startDate, endDate]
+ */
+function isPositionInDateRange(pos, startDate, endDate) {
+  if (!startDate && !endDate) return true;
+
+  const closedInRange = Boolean(
+    pos.endDate &&
+      (!startDate || pos.endDate >= startDate) &&
+      (!endDate || pos.endDate <= endDate)
+  );
+
+  const executedInRange = pos.events.some(
+    e => (!startDate || e.date >= startDate) && (!endDate || e.date <= endDate)
+  );
+
+  return closedInRange || executedInRange;
+}
+
+/**
+ * Compute performance metrics across a given set of positions
+ */
+function computePerformanceSummary(positions = []) {
   const closedPositions = positions.filter(p => p.status === 'CLOSED');
   const openPositions = positions.filter(p => p.status === 'OPEN');
   const intradayPositions = positions.filter(p => p.status === 'INTRADAY');
@@ -289,7 +320,7 @@ function buildPositionsFromTransactions(transactions = []) {
     openCapitalAtRisk += p.currentCostBasis || 0;
   }
 
-  const summary = {
+  return {
     totalPositions: positions.length,
     closedPositions: closedPositions.length,
     openPositions: openPositions.length,
@@ -311,14 +342,11 @@ function buildPositionsFromTransactions(transactions = []) {
     bestTrade,
     worstTrade
   };
-
-  return {
-    positions,
-    summary
-  };
 }
 
 module.exports = {
   buildPositionsFromTransactions,
+  computePerformanceSummary,
+  isPositionInDateRange,
   calculateDaysBetween
 };
