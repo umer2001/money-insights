@@ -124,6 +124,43 @@ async function testTradingPipeline() {
   console.log(`   Excel Buffer size: ${excelBuf.length} bytes`);
   console.log('   [PASS] Export generators produce correct columns.\n');
 
+  // Test 5: Verify Weighted Average Cost (WAC) Position & PnL Lifecycle Engine
+  console.log('5. Testing WAC Position & PnL Engine...');
+  const { buildPositionsFromTransactions } = require('./src/utils/tradingPositionEngine');
+  const { positions, summary } = buildPositionsFromTransactions(consolidated.transactions);
+
+  console.log(`   Total Positions: ${summary.totalPositions}`);
+  console.log(`   Closed: ${summary.closedPositions} | Open (Holding): ${summary.openPositions} | Intraday (DIFF): ${summary.intradayPositions}`);
+  console.log(`   Completed: ${summary.completedPositions} | Wins: ${summary.winsCount} | Losses: ${summary.lossesCount} | Win Rate: ${summary.winRatePercent}%`);
+  console.log(`   Total Realized PnL: PKR ${summary.totalRealizedPnL}`);
+  console.log(`   Best Trade: ${summary.bestTrade?.symbol} (+PKR ${summary.bestTrade?.pnl}) | Worst: ${summary.worstTrade?.symbol} (PKR ${summary.worstTrade?.pnl})`);
+
+  if (summary.totalPositions !== 47) {
+    throw new Error(`Expected 47 total positions, got ${summary.totalPositions}`);
+  }
+  if (summary.closedPositions !== 30 || summary.openPositions !== 8 || summary.intradayPositions !== 9) {
+    throw new Error(`Position counts mismatch: Closed=${summary.closedPositions}, Open=${summary.openPositions}, Intraday=${summary.intradayPositions}`);
+  }
+  if (summary.winsCount !== 25 || summary.lossesCount !== 14 || summary.winRatePercent !== 64.1) {
+    throw new Error(`Win/loss metrics mismatch: ${JSON.stringify(summary)}`);
+  }
+  if (summary.totalRealizedPnL !== -17045.01) {
+    throw new Error(`Expected totalRealizedPnL -17045.01, got ${summary.totalRealizedPnL}`);
+  }
+
+  // Verify nested execution events on round-trip 2 of BOP
+  const bopPositions = positions.filter(p => p.symbol === 'BOP');
+  if (bopPositions.length < 2) {
+    throw new Error(`Expected at least 2 round-trips for BOP, got ${bopPositions.length}`);
+  }
+  const bop2 = bopPositions[1];
+  const eventTypes = bop2.events.map(e => e.type);
+  if (!eventTypes.includes('OPEN_POSITION') || !eventTypes.includes('INCREASE_POSITION') || !eventTypes.includes('PARTIAL_CLOSE') || !eventTypes.includes('CLOSE_POSITION')) {
+    throw new Error(`BOP-2 missing expected execution sequence: ${eventTypes.join(' -> ')}`);
+  }
+  console.log(`   BOP-2 Lifecycle verified: ${eventTypes.join(' -> ')} (Realized: PKR ${bop2.realizedPnL})`);
+  console.log('   [PASS] WAC Position & PnL Engine verified.\n');
+
   console.log('===============================================================');
   console.log('          ALL TRADING TESTS PASSED SUCCESSFULLY!               ');
   console.log('===============================================================\n');

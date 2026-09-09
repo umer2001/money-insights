@@ -14,12 +14,14 @@ import {
   RefreshCw,
   Sun,
   Moon,
-  ShieldCheck
+  ShieldCheck,
+  BarChart3,
 } from "lucide-react";
 import { useTheme } from "@/components/refine-ui/theme/theme-provider";
 import { TradingFileItem, TradingTransaction, TradingConsolidationResult } from "../types";
 import { parseTradingStatement, consolidateTrading, exportTradingTransactions } from "../lib/tradingApi";
 import { TradingGrid } from "../components/TradingGrid";
+import { TradingPositionsView } from "../components/TradingPositionsView";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
@@ -29,6 +31,7 @@ export const Trading: React.FC = () => {
   const [items, setItems] = useState<TradingFileItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("consolidated");
+  const [viewMode, setViewMode] = useState<"positions" | "ledger">("positions");
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -494,32 +497,80 @@ export const Trading: React.FC = () => {
           </div>
         )}
 
-        {/* Tab Switcher & Data Grid */}
+        {/* View Controls & Data Views */}
         {successfulItems.length > 0 && (
           <div className="space-y-4">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="bg-muted/80 p-1 rounded-xl h-auto flex flex-wrap">
-                <TabsTrigger value="consolidated" className="text-xs font-semibold py-1.5 px-3">
-                  <Layers className="w-3.5 h-3.5 mr-1.5 text-purple-600" />
-                  Consolidated Timeline ({consolidatedResult?.transactions.length || 0})
-                </TabsTrigger>
-
-                {successfulItems.map((item) => (
-                  <TabsTrigger key={item.id} value={item.id} className="text-xs py-1.5 px-3">
-                    <span className="truncate max-w-[150px]">{item.name}</span>
-                    <Badge variant="secondary" className="ml-1.5 text-[9px] py-0">
-                      {item.transactions.length}
-                    </Badge>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+              {/* Statement Tabs */}
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
+                <TabsList className="bg-muted/80 p-1 rounded-xl h-auto flex flex-wrap">
+                  <TabsTrigger value="consolidated" className="text-xs font-semibold py-1.5 px-3">
+                    <Layers className="w-3.5 h-3.5 mr-1.5 text-purple-600" />
+                    Consolidated ({consolidatedResult?.transactions.length || 0})
                   </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
 
-            <TradingGrid
-              transactions={displayedTransactions}
-              title={activeTab === "consolidated" ? "Consolidated Deduplicated Trading Ledger" : "Individual Statement Ledger"}
-              isConsolidated={activeTab === "consolidated"}
-            />
+                  {successfulItems.map((item) => (
+                    <TabsTrigger key={item.id} value={item.id} className="text-xs py-1.5 px-3">
+                      <span className="truncate max-w-[150px]">{item.name}</span>
+                      <Badge variant="secondary" className="ml-1.5 text-[9px] py-0">
+                        {item.transactions.length}
+                      </Badge>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+
+              {/* View Mode Switcher: Positions & PnL vs Raw Activity Ledger */}
+              <div className="inline-flex items-center p-1 rounded-xl bg-muted/80 border border-border/50 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("positions")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    viewMode === "positions"
+                      ? "bg-purple-600 text-white shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <BarChart3 className="w-3.5 h-3.5" />
+                  Positions & PnL History
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("ledger")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    viewMode === "ledger"
+                      ? "bg-purple-600 text-white shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  Activity Ledger
+                </button>
+              </div>
+            </div>
+
+            {/* Render View Mode */}
+            {viewMode === "positions" ? (
+              <TradingPositionsView
+                transactions={displayedTransactions}
+                title={
+                  activeTab === "consolidated"
+                    ? "Consolidated Positions & PnL History"
+                    : "Individual Statement Positions & PnL History"
+                }
+                isConsolidated={activeTab === "consolidated"}
+              />
+            ) : (
+              <TradingGrid
+                transactions={displayedTransactions}
+                title={
+                  activeTab === "consolidated"
+                    ? "Consolidated Deduplicated Trading Ledger"
+                    : "Individual Statement Ledger"
+                }
+                isConsolidated={activeTab === "consolidated"}
+              />
+            )}
           </div>
         )}
       </main>
