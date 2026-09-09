@@ -123,8 +123,8 @@ class EclearParser extends BaseParser {
         // Clean trailing WHT placeholder if present
         desc = desc.replace(/\s+WHT$/, '').trim();
 
-        // Check trade details
-        const tradeMatch = desc.match(/T\+\d+\s+(Buy|Sell)\s+([A-Z0-9]+)\s+(\d+)\s+@\s+([\d.]+)/i);
+        // Check trade details (including intraday square-off Diff/Difference)
+        const tradeMatch = desc.match(/T\+\d+\s+(Buy|Sell|Diff\.?|Difference)\s+([A-Z0-9]+)\s+(\d+)\s+@\s+([\d.]+)/i);
         let side = '-';
         let symbol = '';
         let qty = '-';
@@ -132,7 +132,8 @@ class EclearParser extends BaseParser {
         let symbol_description = desc;
 
         if (tradeMatch) {
-          side = tradeMatch[1].toUpperCase();
+          const rawSide = tradeMatch[1].toUpperCase();
+          side = /DIFF/i.test(rawSide) ? 'DIFF' : rawSide;
           symbol = tradeMatch[2].toUpperCase();
           qty = parseInt(tradeMatch[3], 10);
           rate = parseFloat(tradeMatch[4]);
@@ -276,8 +277,8 @@ class EclearParser extends BaseParser {
             const isDr = drCrItem && drCrItem.str === 'Dr';
             if (isDr) balance = -balance;
 
-            // Parse trade info
-            const tradeMatch = desc.match(/T\+\d+\s+(BUY|SELL)\s+#?\s*(\d+)?\s+([A-Z0-9]+)\s+(\d+)\s+@\s+([\d.]+)/i);
+            // Parse trade info (including intraday square-off Difference)
+            const tradeMatch = desc.match(/T\+\d+\s+(BUY|SELL|DIFF\.?|DIFFERENCE)\s+#?\s*(\d+)?\s+([A-Z0-9]+)\s+(\d+)\s+@\s+([\d.]+)/i);
             let side = '-';
             let symbol = '';
             let qty = '-';
@@ -286,7 +287,8 @@ class EclearParser extends BaseParser {
             let symbol_description = desc;
 
             if (tradeMatch) {
-              side = tradeMatch[1].toUpperCase();
+              const rawSide = tradeMatch[1].toUpperCase();
+              side = /DIFF/i.test(rawSide) ? 'DIFF' : rawSide;
               ticket_no = tradeMatch[2] || '';
               symbol = tradeMatch[3].toUpperCase();
               qty = parseInt(tradeMatch[4], 10);

@@ -93,6 +93,18 @@ async function testTradingPipeline() {
     throw new Error('Option C enrichment missing voucher or ticket_no on BOP trade');
   }
   console.log(`   Enriched trade verified: ${bopTrade.symbol} | Voucher: ${bopTrade.voucher} | Ticket: ${bopTrade.ticket_no}`);
+
+  // Verify Option C enriched merge on intraday difference trade (FFL on 2025-12-31)
+  const fflDiff = consolidated.transactions.find(tx => tx.date === '2025-12-31' && tx.symbol === 'FFL' && tx.side === 'DIFF');
+  if (!fflDiff) throw new Error('FFL DIFF trade not found in consolidated transactions');
+  if (fflDiff.qty !== 1500 || fflDiff.rate !== 0.38 || fflDiff.voucher !== 'CV120118' || fflDiff.ticket_no !== '21652') {
+    throw new Error(`FFL DIFF trade mismatch: ${JSON.stringify(fflDiff)}`);
+  }
+  const diffCount = consolidated.transactions.filter(tx => tx.side === 'DIFF').length;
+  if (diffCount !== 9) {
+    throw new Error(`Expected 9 DIFF trades, got ${diffCount}`);
+  }
+  console.log(`   Enriched intraday DIFF verified: ${fflDiff.symbol} | Qty: ${fflDiff.qty} | Rate: ${fflDiff.rate} | Voucher: ${fflDiff.voucher} | Ticket: ${fflDiff.ticket_no}`);
   console.log('   [PASS] Consolidation and Option C Enriched Merge verified.\n');
 
   // Test 4: Verify 7-column CSV & Excel export output

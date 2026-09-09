@@ -37,9 +37,9 @@ function areTransactionsDuplicate(a, b) {
   if (a.date !== b.date) return false;
   if (a.action !== b.action) return false;
 
-  // 2. If both are trades
-  const isTradeA = (a.side === 'BUY' || a.side === 'SELL') && Boolean(a.symbol);
-  const isTradeB = (b.side === 'BUY' || b.side === 'SELL') && Boolean(b.symbol);
+  // 2. If both are trades (BUY, SELL, or intraday DIFF)
+  const isTradeA = (a.side === 'BUY' || a.side === 'SELL' || a.side === 'DIFF') && Boolean(a.symbol);
+  const isTradeB = (b.side === 'BUY' || b.side === 'SELL' || b.side === 'DIFF') && Boolean(b.symbol);
 
   if (isTradeA && isTradeB) {
     if (a.symbol === b.symbol && a.side === b.side) {

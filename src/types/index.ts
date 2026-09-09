@@ -55,7 +55,7 @@ export interface CurrencyConsolidation {
 export interface TradingTransaction {
   date: string;
   symbol_description: string;
-  side: 'BUY' | 'SELL' | '-';
+  side: 'BUY' | 'SELL' | 'DIFF' | '-';
   action: 'credit' | 'debit';
   qty: number | string;
   rate: number | string;

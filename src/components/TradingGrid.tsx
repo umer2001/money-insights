@@ -26,7 +26,7 @@ export const TradingGrid: React.FC<TradingGridProps> = ({
   isConsolidated = false,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [sideFilter, setSideFilter] = useState<"all" | "BUY" | "SELL" | "other">("all");
+  const [sideFilter, setSideFilter] = useState<"all" | "BUY" | "SELL" | "DIFF" | "other">("all");
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
@@ -47,6 +47,7 @@ export const TradingGrid: React.FC<TradingGridProps> = ({
       let matchesSide = true;
       if (sideFilter === "BUY") matchesSide = tx.side === "BUY";
       else if (sideFilter === "SELL") matchesSide = tx.side === "SELL";
+      else if (sideFilter === "DIFF") matchesSide = tx.side === "DIFF";
       else if (sideFilter === "other") matchesSide = tx.side === "-" || !tx.side;
 
       return matchesSearch && matchesSide;
@@ -157,6 +158,21 @@ export const TradingGrid: React.FC<TradingGridProps> = ({
             SELL
           </Button>
           <Button
+            variant={sideFilter === "DIFF" ? "default" : "outline"}
+            size="sm"
+            className={`h-8 text-xs ${
+              sideFilter === "DIFF"
+                ? "bg-cyan-600 hover:bg-cyan-700 text-white"
+                : "text-cyan-600 border-cyan-500/30 hover:bg-cyan-500/10"
+            }`}
+            onClick={() => {
+              setSideFilter("DIFF");
+              setPage(1);
+            }}
+          >
+            DIFF
+          </Button>
+          <Button
             variant={sideFilter === "other" ? "default" : "outline"}
             size="sm"
             className="h-8 text-xs"
@@ -198,6 +214,7 @@ export const TradingGrid: React.FC<TradingGridProps> = ({
                   const isCredit = tx.action === "credit";
                   const isBuy = tx.side === "BUY";
                   const isSell = tx.side === "SELL";
+                  const isDiff = tx.side === "DIFF";
                   const symDesc = tx.symbol_description || tx.symbol || tx.description;
 
                   return (
@@ -230,6 +247,8 @@ export const TradingGrid: React.FC<TradingGridProps> = ({
                               ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                               : isSell
                               ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                              : isDiff
+                              ? "bg-cyan-500/10 text-cyan-600 border-cyan-500/20 dark:bg-cyan-500/20 dark:text-cyan-400"
                               : "bg-slate-500/10 text-slate-500 border-slate-500/20"
                           }`}
                         >

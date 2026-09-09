@@ -145,8 +145,8 @@ export const Trading: React.FC = () => {
             if (!matchedInThis.has(i)) {
               const existing = deduplicated[i];
               if (existing.date === tx.date && existing.action === tx.action) {
-                const isTradeA = (existing.side === "BUY" || existing.side === "SELL") && Boolean(existing.symbol);
-                const isTradeB = (tx.side === "BUY" || tx.side === "SELL") && Boolean(tx.symbol);
+                const isTradeA = (existing.side === "BUY" || existing.side === "SELL" || existing.side === "DIFF") && Boolean(existing.symbol);
+                const isTradeB = (tx.side === "BUY" || tx.side === "SELL" || tx.side === "DIFF") && Boolean(tx.symbol);
 
                 if (isTradeA && isTradeB) {
                   if (existing.symbol === tx.symbol && existing.side === tx.side) {
